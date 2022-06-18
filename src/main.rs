@@ -1,4 +1,4 @@
-use blbpe::Encoder;
+use byte_level_bpe::Encoder;
 
 fn main() {
     let mut encoder = Encoder::new();
