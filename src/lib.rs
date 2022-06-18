@@ -5,6 +5,10 @@ pub struct Decoder {
 }
 
 impl Decoder {
+    pub fn from_table(table: Vec<[u16; 2]>) -> Self {
+        Decoder { table }
+    }
+
     pub fn decode(&self, seq: &[u16]) -> Vec<u8> {
         let mut result = Vec::new();
         for &code in seq {
