@@ -81,7 +81,7 @@ impl Encoder {
 
             let mut pairs: Vec<(u16, u32)> = counter.finish();
 
-            let offset = 2u16.pow(8) + self.table.len() as u16;
+            let offset = 0x100 + self.table.len() as u16;
 
             pairs.truncate(vocab_size.saturating_sub(offset as usize));
 
@@ -148,7 +148,7 @@ struct Counter(HashMap<u32, u16>);
 
 impl Counter {
     fn add(&mut self, pair: u32) {
-        *self.0.entry(pair).or_insert(0) += 1;
+        *self.0.entry(pair).or_insert(1) += 1;
     }
 
     fn add_codes(&mut self, codes: &[u16]) {
@@ -161,19 +161,19 @@ impl Counter {
         let mut pairs: Vec<(u16, u32)> = self
             .0
             .into_iter()
-            .filter(|(_, v)| 1 < *v)
+            .filter(|(_, v)| 2 < *v) // 2 is a magic number
             .map(|(k, v)| (v, k))
             .collect();
         pairs.sort_unstable();
         pairs.reverse();
 
         let mut closed = Vec::new();
-        for (i, (count, pair)) in pairs.iter().copied().enumerate() {
+        for (i, &(count, pair)) in pairs.iter().enumerate() {
             let a = (pair >> 16) as u16;
             let b = pair as u16;
             if closed.contains(&a) || closed.contains(&b) {
                 let mut new_pairs = Vec::new();
-                for (count_, pair) in pairs.iter().skip(i + 1).copied() {
+                for &(count_, pair) in pairs.iter().skip(i + 1) {
                     if count_ < count {
                         break;
                     }
