@@ -19,11 +19,12 @@ fn main() {
         "これは日本語の文章です。",
     ].iter(), 1000);
     dbg!(encoder.hash_map().len());
-    let encoded = dbg!(encoder.encode("Byte pair encoding is good!"));
     let decoder = encoder.as_decoder();
+    let encoded = dbg!(encoder.encode("Byte pair encoding is good!"));
     dbg!(String::from_utf8(decoder.decode(&encoded)));
 
     let encoded = dbg!(encoder.encode("日本語もいけるよ"));
-    let decoder = encoder.as_decoder();
     dbg!(String::from_utf8(decoder.decode(&encoded)));
+
+    assert_eq!(encoder.hash_map(), decoder.as_encoder().hash_map());
 }

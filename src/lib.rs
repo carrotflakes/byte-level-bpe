@@ -21,6 +21,20 @@ impl Decoder {
         }
         result
     }
+
+    pub fn as_encoder(&self) -> Encoder {
+        let table = self
+            .table
+            .iter()
+            .enumerate()
+            .map(|(i, &[a, b])| ((a as u32) << 16 | b as u32, i as u16 + 0x100))
+            .collect();
+        Encoder { table }
+    }
+
+    pub fn table(&self) -> &Vec<[u16; 2]> {
+        &self.table
+    }
 }
 
 pub struct Encoder {
@@ -105,11 +119,11 @@ impl Encoder {
     }
 
     pub fn as_decoder(&self) -> Decoder {
-        let mut data = vec![[0; 2]; self.table.len()];
+        let mut table = vec![[0; 2]; self.table.len()];
         for (&k, &v) in self.table.iter() {
-            data[v as usize - 0x100] = [(k >> 16) as u16, k as u16];
+            table[v as usize - 0x100] = [(k >> 16) as u16, k as u16];
         }
-        Decoder { table: data }
+        Decoder { table }
     }
 
     pub fn hash_map(&self) -> &HashMap<u32, u16> {
