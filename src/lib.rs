@@ -66,15 +66,15 @@ impl Encoder {
             for text in &mut texts {
                 match text {
                     Text::String(s) => {
-                        let encoded = self.encode(s);
-                        counter.add_codes(&encoded);
-                        if s.bytes().count() != encoded.len() {
-                            *text = Text::Pairs(encoded); // TODO
+                        let codes = self.encode(s);
+                        counter.add_codes(&codes);
+                        if s.bytes().count() != codes.len() {
+                            *text = Text::Pairs(codes); // TODO
                         }
                     }
-                    Text::Pairs(pairs) => {
-                        self.encode_ex(pairs);
-                        counter.add_codes(&pairs);
+                    Text::Pairs(codes) => {
+                        self.encode_ex(codes);
+                        counter.add_codes(&codes);
                     }
                 }
             }
@@ -98,7 +98,7 @@ impl Encoder {
                 pairs
                     .iter()
                     .enumerate()
-                    .map(|(i, (_, pair))| (*pair, offset + i as u16)),
+                    .map(|(i, &(_, pair))| (pair, offset + i as u16)),
             );
         }
     }
@@ -112,11 +112,11 @@ impl Encoder {
     fn encode_ex(&self, codes: &mut Vec<u16>) {
         let mut i = 0;
         while i + 1 < codes.len() {
-            if let Some(nc) = self
+            if let Some(code) = self
                 .table
                 .get(&((codes[i] as u32) << 16 | codes[i + 1] as u32))
             {
-                codes[i] = *nc;
+                codes[i] = *code;
                 codes.remove(i + 1);
                 i = i.saturating_sub(1);
             } else {
