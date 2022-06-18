@@ -9,9 +9,9 @@ impl Decoder {
         Decoder { table }
     }
 
-    pub fn decode(&self, seq: &[u16]) -> Vec<u8> {
+    pub fn decode(&self, codes: &[u16]) -> Vec<u8> {
         let mut result = Vec::new();
-        for &code in seq {
+        for &code in codes {
             let mut codes = vec![code];
             while !codes.is_empty() {
                 let code = codes.pop().unwrap();
@@ -67,14 +67,14 @@ impl Encoder {
                 match text {
                     Text::String(s) => {
                         let encoded = self.encode(s);
-                        counter.add_sequence(&encoded);
+                        counter.add_codes(&encoded);
                         if s.bytes().count() != encoded.len() {
                             *text = Text::Pairs(encoded); // TODO
                         }
                     }
                     Text::Pairs(pairs) => {
                         self.encode_ex(pairs);
-                        counter.add_sequence(&pairs);
+                        counter.add_codes(&pairs);
                     }
                 }
             }
@@ -109,12 +109,15 @@ impl Encoder {
         result
     }
 
-    fn encode_ex(&self, seq: &mut Vec<u16>) {
+    fn encode_ex(&self, codes: &mut Vec<u16>) {
         let mut i = 0;
-        while i + 1 < seq.len() {
-            if let Some(nc) = self.table.get(&((seq[i] as u32) << 16 | seq[i + 1] as u32)) {
-                seq[i] = *nc;
-                seq.remove(i + 1);
+        while i + 1 < codes.len() {
+            if let Some(nc) = self
+                .table
+                .get(&((codes[i] as u32) << 16 | codes[i + 1] as u32))
+            {
+                codes[i] = *nc;
+                codes.remove(i + 1);
                 i = i.saturating_sub(1);
             } else {
                 i += 1;
@@ -148,9 +151,9 @@ impl Counter {
         *self.0.entry(pair).or_insert(0) += 1;
     }
 
-    fn add_sequence(&mut self, seq: &[u16]) {
-        for i in 0..seq.len() - 1 {
-            self.add((seq[i] as u32) << 16 | seq[i + 1] as u32);
+    fn add_codes(&mut self, codes: &[u16]) {
+        for i in 0..codes.len() - 1 {
+            self.add((codes[i] as u32) << 16 | codes[i + 1] as u32);
         }
     }
 
