@@ -53,11 +53,11 @@ impl Encoder {
     }
 
     pub fn build<T: ToString, I: Iterator<Item = T>>(&mut self, texts: I, vocab_size: usize) {
-        let mut texts: Vec<_> = texts
-            .map(|s| s.to_string())
-            .filter(|s| !s.is_empty())
-            .map(Text::String)
-            .collect();
+        self.build_from_bytes(texts.map(|s| s.to_string().into_bytes()), vocab_size);
+    }
+
+    pub fn build_from_bytes<I: Iterator<Item = Vec<u8>>>(&mut self, bytes: I, vocab_size: usize) {
+        let mut texts: Vec<_> = bytes.filter(|s| !s.is_empty()).map(Text::Bytes).collect();
 
         // let mut new_pairs = HashMap::new();
 
@@ -65,14 +65,14 @@ impl Encoder {
             let mut counter = Counter::default();
             for text in &mut texts {
                 match text {
-                    Text::String(s) => {
-                        let codes = self.encode(s);
+                    Text::Bytes(s) => {
+                        let codes = self.encode_bytes(s);
                         counter.add_codes(&codes);
-                        if s.bytes().count() != codes.len() {
-                            *text = Text::Pairs(codes); // TODO
+                        if s.len() != codes.len() {
+                            *text = Text::Codes(codes); // TODO
                         }
                     }
-                    Text::Pairs(codes) => {
+                    Text::Codes(codes) => {
                         self.encode_ex(codes);
                         counter.add_codes(&codes);
                     }
@@ -104,7 +104,11 @@ impl Encoder {
     }
 
     pub fn encode(&self, str: &str) -> Vec<u16> {
-        let mut result = str.bytes().map(|c| c as u16).collect::<Vec<_>>();
+        self.encode_bytes(str.as_bytes())
+    }
+
+    pub fn encode_bytes(&self, bytes: &[u8]) -> Vec<u16> {
+        let mut result = bytes.iter().map(|c| *c as u16).collect::<Vec<_>>();
         self.encode_ex(&mut result);
         result
     }
@@ -139,8 +143,8 @@ impl Encoder {
 }
 
 enum Text {
-    String(String),
-    Pairs(Vec<u16>),
+    Bytes(Vec<u8>),
+    Codes(Vec<u16>),
 }
 
 #[derive(Default)]
