@@ -1,5 +1,3 @@
-use std::io::{Write, Read};
-
 use byte_level_bpe::{Encoder, Decoder};
 
 fn main() {
@@ -18,6 +16,7 @@ fn main() {
 
     // Save vocabulary to a file
     {
+        use std::io::Write;
         let vocab: &Vec<[u16; 2]> = decoder.table();
         let file = std::fs::File::create("vocab").unwrap();
         let mut writer = std::io::BufWriter::new(file);
@@ -29,6 +28,7 @@ fn main() {
 
     // Load vocabulary
     let decoder = {
+        use std::io::Read;
         let file = std::fs::File::open("vocab").unwrap();
         let mut reader = std::io::BufReader::new(file);
         let mut table = Vec::new();
