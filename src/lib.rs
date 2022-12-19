@@ -73,7 +73,7 @@ impl Encoder {
                         }
                     }
                     Text::Codes(codes) => {
-                        self.encode_ex(codes);
+                        self.encode_codes(codes);
                         counter.add_codes(&codes);
                     }
                 }
@@ -109,24 +109,27 @@ impl Encoder {
 
     pub fn encode_bytes(&self, bytes: &[u8]) -> Vec<u16> {
         let mut result = bytes.iter().map(|c| *c as u16).collect::<Vec<_>>();
-        self.encode_ex(&mut result);
+        self.encode_codes(&mut result);
         result
     }
 
-    fn encode_ex(&self, codes: &mut Vec<u16>) {
+    fn encode_codes(&self, codes: &mut Vec<u16>) {
+        if codes.is_empty() {
+            return;
+        }
+
         let mut i = 0;
-        while i + 1 < codes.len() {
-            if let Some(code) = self
-                .table
-                .get(&((codes[i] as u32) << 16 | codes[i + 1] as u32))
-            {
-                codes[i] = *code;
-                codes.remove(i + 1);
-                i = i.saturating_sub(1);
+
+        for j in 1..codes.len() {
+            if let Some(&code) = self.table.get(&((codes[i] as u32) << 16 | codes[j] as u32)) {
+                codes[i] = code;
             } else {
                 i += 1;
+                codes[i] = codes[j];
             }
         }
+
+        codes.truncate(i + 1);
     }
 
     pub fn to_decoder(&self) -> Decoder {
