@@ -5,7 +5,7 @@ byte-level-bpe provides encoders and decoders based on Byte-level Byte Pair Enco
 ## Usage
 
 ``` rust
-use byte_level_bpe::Encoder;
+use byte_level_bpe::{Decoder, Encoder};
 
 // Build vocabulary
 let mut encoder = Encoder::new();
