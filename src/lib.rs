@@ -26,7 +26,7 @@ impl Decoder {
         result
     }
 
-    pub fn as_encoder(&self) -> Encoder {
+    pub fn to_encoder(&self) -> Encoder {
         let table = self
             .table
             .iter()
@@ -129,7 +129,7 @@ impl Encoder {
         }
     }
 
-    pub fn as_decoder(&self) -> Decoder {
+    pub fn to_decoder(&self) -> Decoder {
         let mut table = vec![[0; 2]; self.table.len()];
         for (&k, &v) in self.table.iter() {
             table[v as usize - 0x100] = [(k >> 16) as u16, k as u16];

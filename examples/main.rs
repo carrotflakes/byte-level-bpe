@@ -9,7 +9,7 @@ fn main() {
     encoder.build(["ABCDCDABCDCDE"].iter(), 300);
     dbg!(encoder.hash_map());
     let encoded = dbg!(encoder.encode("ABCDCDABCDCDE"));
-    let decoder = encoder.as_decoder();
+    let decoder = encoder.to_decoder();
     dbg!(String::from_utf8(decoder.decode(&encoded)));
 
     let mut encoder = Encoder::new();
@@ -19,12 +19,12 @@ fn main() {
         "これは日本語の文章です。",
     ].iter(), 1000);
     dbg!(encoder.hash_map().len());
-    let decoder = encoder.as_decoder();
+    let decoder = encoder.to_decoder();
     let encoded = dbg!(encoder.encode("Byte pair encoding is good!"));
     dbg!(String::from_utf8(decoder.decode(&encoded)));
 
     let encoded = dbg!(encoder.encode("日本語もいけるよ"));
     dbg!(String::from_utf8(decoder.decode(&encoded)));
 
-    assert_eq!(encoder.hash_map(), decoder.as_encoder().hash_map());
+    assert_eq!(encoder.hash_map(), decoder.to_encoder().hash_map());
 }
